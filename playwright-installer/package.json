@@ -1,0 +1,16 @@
+{
+  "name": "playwright-installer",
+  "description": "Playwright installer for Serenity/JS",
+  "version": "1.0.0",
+  "private": true,
+  "author": {
+    "name": "Jan Molak",
+    "email": "jan.molak@smartcodeltd.co.uk",
+    "url": "https://janmolak.com"
+  },
+  "homepage": "https://serenity-js.org",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

@@ -85,7 +85,7 @@ jobs:
           tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.tag }}
 
       - name: Push Git tag
-        if: success()
+        if: success() && github.ref == 'refs/heads/main'
         env:
           TAG_NAME: ${{ steps.git_tag.outputs.tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

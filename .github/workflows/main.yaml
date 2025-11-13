@@ -51,6 +51,14 @@ jobs:
           tag="v${{ steps.playwright_version.outputs.version }}-${{ steps.distro.outputs.distro }}"
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
+      - name: Set Git tag
+        if: github.ref == 'refs/heads/main'
+        id: git_tag
+        run: |
+          COMMIT_SHA=${GITHUB_SHA::7}
+          GIT_TAG="${{ steps.tag.outputs.tag }}-${COMMIT_SHA}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Build image
         id: build
         uses: docker/build-push-action@v4
@@ -66,12 +74,24 @@ jobs:
           docker run --rm serenity-js:latest node --version
           docker run --rm serenity-js:latest java --version
           docker run --rm serenity-js:latest google-chrome --version
-          docker run --rm serenity-js:latest microsoft-edge --version
+          docker run --rm serenity-js:latest microsoft-edge --version 
 
-      - name: Push image if tests pass
+      - name: Push image
         if: success() && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.tag }}
+
+      - name: Push Git tag
+        if: success()
+        env:
+          TAG_NAME: ${{ steps.git_tag.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating Git tag $TAG_NAME"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME

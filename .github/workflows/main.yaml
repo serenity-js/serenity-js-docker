@@ -67,3 +67,11 @@ jobs:
           docker run --rm serenity-js:latest java --version
           docker run --rm serenity-js:latest google-chrome --version
           docker run --rm serenity-js:latest microsoft-edge --version
+
+      - name: Push image if tests pass
+        if: success() && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/serenity-js/serenity-js:${{ steps.tag.outputs.tag }}

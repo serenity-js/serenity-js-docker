@@ -74,4 +74,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/serenity-js/serenity-js:${{ steps.tag.outputs.tag }}
+          tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.tag }}

@@ -15,6 +15,9 @@ jobs:
   build-test-publish:
     name: "Build -> Test -> Publish"
     runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      git_tag: ${{ steps.git_tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -84,10 +87,20 @@ jobs:
           push: true
           tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.tag }}
 
+  tag:
+    name: "Tag repository"
+    runs-on: "ubuntu-24.04"
+    needs: build-test-publish
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
       - name: Push Git tag
         if: success() && github.ref == 'refs/heads/main'
         env:
-          TAG_NAME: ${{ steps.git_tag.outputs.tag }}
+          TAG_NAME: ${{ needs.build-test-publish.outputs.git_tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Creating Git tag $TAG_NAME"

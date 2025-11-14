@@ -12,12 +12,59 @@ permissions:
   packages: write
 
 jobs:
+  version:
+    name: Version
+    runs-on: ubuntu-24.04
+    outputs:
+      playwright_version: ${{ steps.playwright.outputs.version }}
+      docker_label: ${{ steps.docker.outputs.label }}
+      git_tag: ${{ steps.git.outputs.tag }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Extract Playwright version
+        id: playwright
+        run: |
+          extracted_version=$(node -p "require('./playwright-installer/package.json').dependencies['@playwright/test']")
+          echo "version=$extracted_version" >> $GITHUB_OUTPUT
+
+      - name: Extract Ubuntu distro codename
+        id: distro
+        run: |
+          from_line=$(grep '^FROM' Dockerfile)
+          # Extract the tag part after 'ubuntu:' and before '@' or end of line
+          extracted_codename=$(echo "$from_line" | sed -n 's/^FROM ubuntu:\([^@]*\).*/\1/p')
+          # Fallback to default if not found
+          codename=${extracted_codename:-noble}
+          echo "codename=$codename" >> $GITHUB_OUTPUT
+
+      - name: Determine Docker label
+        id: docker
+        run: |
+          label="v${{ steps.playwright.outputs.version }}-${{ steps.distro.outputs.codename }}"
+          echo "label=$label" >> $GITHUB_OUTPUT
+
+      - name: Determine Git tag
+        id: git
+        run: |
+          COMMIT_SHA=${GITHUB_SHA::7}
+          tag="${{ steps.docker.outputs.label }}-${COMMIT_SHA}"
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "Playwright version: ${{ steps.playwright.outputs.version }}"
+          echo "Docker label: ${{ steps.docker.outputs.label }}"
+          echo "Git tag: ${{ steps.git.outputs.tag }}" 
+
   build-test-publish:
     name: "Build -> Test -> Publish"
     runs-on: ubuntu-24.04
-    outputs:
-      docker_tag: ${{ steps.tag.outputs.docker_tag }}
-      git_tag: ${{ steps.git_tag.outputs.git_tag }}
+    needs:
+      - version
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -31,36 +78,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Playwright version
-        id: playwright_version
-        run: |
-          version=$(node -p "require('./playwright-installer/package.json').dependencies['@playwright/test']")
-          echo "version=$version" >> $GITHUB_OUTPUT
-
-      - name: Get Ubuntu distro codename from Dockerfile
-        id: distro
-        run: |
-          from_line=$(grep '^FROM' Dockerfile)
-          # Extract the tag part after 'ubuntu:' and before '@' or end of line
-          distro=$(echo "$from_line" | sed -n 's/^FROM ubuntu:\([^@]*\).*/\1/p')
-          # Fallback to default if not found
-          distro=${distro:-noble}
-          echo "distro=$distro" >> $GITHUB_OUTPUT
-
-      - name: Set image tag
-        id: docker_tag
-        run: |
-          docker_tag="v${{ steps.playwright_version.outputs.version }}-${{ steps.distro.outputs.distro }}"
-          echo "docker_tag=$docker_tag" >> $GITHUB_OUTPUT
-
-      - name: Set Git tag
-        if: github.ref == 'refs/heads/main'
-        id: git_tag
-        run: |
-          COMMIT_SHA=${GITHUB_SHA::7}
-          git_tag="${{ steps.tag.outputs.tag }}-${COMMIT_SHA}"
-          echo "git_tag=$git_tag" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -85,13 +102,17 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.docker_tag }}
+          tags: ghcr.io/serenity-js/playwright:${{ needs.version.outputs.docker_label }}
 
   tag:
     name: "Tag repository"
     runs-on: "ubuntu-24.04"
-    needs: build-test-publish
     if: github.ref == 'refs/heads/main'
+
+    needs:
+    - version
+    - build-test-publish
+
     permissions:
       contents: write
       id-token: write
@@ -102,7 +123,7 @@ jobs:
 
       - name: Push Git tag
         env:
-          TAG_NAME: ${{ needs.build-test-publish.outputs.git_tag }}
+          TAG_NAME: ${{ needs.version.outputs.git_tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Creating Git tag $TAG_NAME"

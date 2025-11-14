@@ -97,8 +97,10 @@ jobs:
       id-token: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Push Git tag
-        if: success() && github.ref == 'refs/heads/main'
         env:
           TAG_NAME: ${{ needs.build-test-publish.outputs.git_tag }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

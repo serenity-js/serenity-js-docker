@@ -16,8 +16,8 @@ jobs:
     name: "Build -> Test -> Publish"
     runs-on: ubuntu-24.04
     outputs:
-      tag: ${{ steps.tag.outputs.tag }}
-      git_tag: ${{ steps.git_tag.outputs.tag }}
+      docker_tag: ${{ steps.tag.outputs.docker_tag }}
+      git_tag: ${{ steps.git_tag.outputs.git_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -49,18 +49,18 @@ jobs:
           echo "distro=$distro" >> $GITHUB_OUTPUT
 
       - name: Set image tag
-        id: tag
+        id: docker_tag
         run: |
-          tag="v${{ steps.playwright_version.outputs.version }}-${{ steps.distro.outputs.distro }}"
-          echo "tag=$tag" >> $GITHUB_OUTPUT
+          docker_tag="v${{ steps.playwright_version.outputs.version }}-${{ steps.distro.outputs.distro }}"
+          echo "docker_tag=$docker_tag" >> $GITHUB_OUTPUT
 
       - name: Set Git tag
         if: github.ref == 'refs/heads/main'
         id: git_tag
         run: |
           COMMIT_SHA=${GITHUB_SHA::7}
-          GIT_TAG="${{ steps.tag.outputs.tag }}-${COMMIT_SHA}"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          git_tag="${{ steps.tag.outputs.tag }}-${COMMIT_SHA}"
+          echo "git_tag=$git_tag" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -85,7 +85,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.tag }}
+          tags: ghcr.io/serenity-js/playwright:${{ steps.tag.outputs.docker_tag }}
 
   tag:
     name: "Tag repository"

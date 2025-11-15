@@ -34,7 +34,7 @@ RUN \
     echo "deb [signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get -y update && \
 ### Install Node.js
-    apt-get install -y default-jre google-chrome-stable microsoft-edge-stable nodejs && \
+    apt-get install -y default-jre google-chrome-stable microsoft-edge-stable nodejs sudo && \
 ### Feature-parity with node.js base images.
     apt-get install -y --no-install-recommends git openssh-client && \
 ### Clean up
@@ -60,6 +60,9 @@ RUN \
 ### Add user
     addgroup --gid "$USER_GID" "$USERNAME" && \
     adduser --disabled-password --gecos "" --uid "$USER_UID" --ingroup "$USERNAME" "$USERNAME" && \
+### Configure sudo for the user
+    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
+    chmod 0440 /etc/sudoers.d/$USERNAME && \
 ### Set permissions
     chown -R "$USERNAME":"$USERNAME" "$PLAYWRIGHT_BROWSERS_PATH";
 

@@ -34,7 +34,7 @@ RUN \
     echo "deb [signed-by=/etc/apt/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get -y update && \
 ### Install Node.js
-    apt-get install -y default-jre google-chrome-stable microsoft-edge-stable nodejs sudo && \
+    apt-get install -y default-jre google-chrome-stable microsoft-edge-stable nodejs rsync sudo && \
 ### Feature-parity with node.js base images.
     apt-get install -y --no-install-recommends git openssh-client && \
 ### Clean up

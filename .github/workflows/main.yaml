@@ -81,7 +81,7 @@ jobs:
 
       - name: Build image
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           tags: serenity-js:latest
@@ -98,7 +98,7 @@ jobs:
 
       - name: Push image
         if: success() && github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true

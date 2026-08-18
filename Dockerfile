@@ -37,6 +37,11 @@ RUN \
     apt-get install -y default-jre google-chrome-stable microsoft-edge-stable nodejs rsync sudo && \
 ### Feature-parity with node.js base images.
     apt-get install -y --no-install-recommends git openssh-client && \
+### Remove apt sources — packages are installed, sources are no longer needed
+### and would cause failures in downstream apt-get update (e.g. devcontainer features)
+    rm -f /etc/apt/sources.list.d/microsoft-edge.list && \
+    rm -f /etc/apt/sources.list.d/google-chrome.list && \
+    rm -f /etc/apt/sources.list.d/nodesource.list && \
 ### Clean up
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*;

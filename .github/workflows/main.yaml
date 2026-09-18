@@ -14,7 +14,7 @@ permissions:
 jobs:
   version:
     name: Version
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       playwright_version: ${{ steps.playwright.outputs.version }}
       docker_label: ${{ steps.docker.outputs.label }}
@@ -61,7 +61,7 @@ jobs:
 
   build-test-publish:
     name: "Build -> Test -> Publish"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - version
 
@@ -106,7 +106,7 @@ jobs:
 
   tag:
     name: "Tag repository"
-    runs-on: "ubuntu-24.04"
+    runs-on: "ubuntu-26.04"
     if: github.ref == 'refs/heads/main'
 
     needs:

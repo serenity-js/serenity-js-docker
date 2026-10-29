@@ -1,4 +1,4 @@
-FROM ubuntu:resolute@sha256:f144425ff09be612d6d9ad965196e9cdc23dae1f42110a8a11a3e9a8198759f7
+FROM ubuntu:resolute@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
 
 LABEL org.opencontainers.image.source="https://github.com/serenity-js/serenity-js-docker"
 LABEL org.opencontainers.image.description="Serenity/JS runtime environment: Ubuntu, Node.js, JRE, Playwright browsers, Google Chrome, Microsoft Edge"
